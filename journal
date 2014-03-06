@@ -7,3 +7,10 @@ document descriptif rédigé par Julien mis en ligne aujourd'hui. Les données pour
 pendant les phases de non-acquisition. Meeting avec les autres groupes le 27. Fichier acquis dans leur totalité avant la compression.
 Cela nous permet de passer par des phases longues de compression sur le fichier. 
 On attend encore des plages de données plus précises. Mais les données devraient rester de l'ordre du MeV.
+
+#06/03 Olden
+Nous avons vu Hubert Halloin qui nous a rapidement parlé des données GPS et nous a présenté son programme.
+Oliver a pour mission d'executer le programme et et essaie de voir les compressions possibles via différents algorithmes.
+Julien réalisera un spectre à partir des fichiers de modélisation (compression plus efficace ?)
+Olden se penchera sur le GPS et verra la compression possible.
+
