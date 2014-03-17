@@ -52,7 +52,7 @@ def splitter():
 		val.write("\n")
 	#closeall()
 
-#Self defining Huffman
+#Unary compression
 #Alphabet:
 #0, 10, 110, 1110
 def statConv():
