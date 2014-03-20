@@ -1,3 +1,6 @@
+#20/3 JBY
+avancée sur la compression : il faut essayer de faire deux passes : une de compression à la volée, et une durant la révolution "offline"
+
 #13/02 JBY
 étude de compression commencée, attendent des données types. Problème : conservation des données dans l'ordre d'acquisition, etc.
 pour le 20/02, produire quelqeus documents descriptifs, périodicité, etc.
