@@ -67,7 +67,9 @@ def statConv():
 	print(freq)
 	#-1, 0, 1, 2
 	tmpF = [(freq["-1"],"-1"), (freq["0"],"0"), (freq["1"],"1"), (freq["2"],"2")]
+	#Sort from smallest to biggest
 	tmpF.sort()
+	#link alphabet to values, highest frequency =  smallest value
 	alphaB = {tmpF[3][1] : "\x00".encode(), tmpF[2][1] : "\x10".encode(), tmpF[1][1] : "\x11\x00".encode(), tmpF[0][1] : "\x11\x10".encode()}
 	statC = open('tmpconv/statCHuff','wb')
 	stat = open('tmpconv/stat','r')
@@ -83,8 +85,74 @@ def statConv():
 #-1 = 00, 0 = 01, 1 = 10, 2 = 11
 def statConv():
 	stat = open('tmpconv/stat','r')
+	freq = {"-1" : 0, "0" : 0, "1" : 0, "2" : 0}
+	for tmp in stat:
+		tmpp = tmp.split()
+		for val in tmpp:
+			freq[val] = freq[val] + 1
+	stat.close()
+	print(freq)
+
+	stat = open('tmpconv/stat','r')
+	stat.close()
 	statC = open('tmpconv/statCNorm','wb')
-	alphaB = {"-1" : "\x00".encode(), "0" : "\x01".encode(), "1" : "\x10".encode(), "2" : "\x11".encode()}
+	statC.close()
+
+#Adaptive Huffman
+#It looks like the Unary compression except that the binary values for the
+#alphabet will be shorter
+#The alphabet is self defined
+
+#This is a tree to stock values and create the alphabet
+class Node(object):
+	def __init__(self, a):
+		self.tree = [None, None]
+		self.val = None
+		self.freq = a[0]
+		self.freqSum = a[1]
+	def __init__(self):
+		self.tree = [None, None]
+		self.val = None
+		self.freq = 0
+		self.freqSum = 0
+	def setLeftLeaf(self, n):
+		self.tree[0] = n
+		self.setFreq()
+	def setRightLeaf(self, n):
+		self.tree[1] = n
+		self.setFreq()
+	def setFreq(self):
+		self.freqSum = 0
+		if self.tree[0] != None:
+			self.freqSum += self.tree[0].freq
+		if self.tree[1] != None:
+			self.freqSum += self.tree[1].freq
+
+def statConv():
+	stat = open('tmpconv/stat','r')
+	#-1, 0, 1, 2
+	freq = {"-1" : 0, "0" : 0, "1" : 0, "2" : 0}
+	for tmp in stat:
+		tmpp = tmp.split()
+		for val in tmpp:
+			freq[val] = freq[val] + 1
+	stat.close()
+	print(freq)
+	#-1, 0, 1, 2
+	tmpF = [(freq["-1"],"-1"), (freq["0"],"0"), (freq["1"],"1"), (freq["2"],"2")]
+	tmpF.sort()
+
+	root = Node()
+	root.setLeftLeaf(Node(tmpF[0]))
+	root.setRightLeaf(Node(tmpF[1]))
+
+	for i in range(2, len(tmpF)):
+		n = Node(tmpF[i])
+		
+	
+	alphaB = {tmpF[3][1] : "\x00".encode(), tmpF[2][1] : "\x10".encode(), tmpF[1][1] : "\x11\x00".encode(), tmpF[0][1] : "\x11\x10".encode()}
+	statC = open('tmpconv/statCHuff','wb')
+	stat = open('tmpconv/stat','r')
 	print(alphaB)
 	for tmp in stat:
 		tmpp = tmp.split()
@@ -92,4 +160,3 @@ def statConv():
 			statC.write(alphaB[val])
 	stat.close()
 	statC.close()
-	
