@@ -1,3 +1,12 @@
+Thu Apr  3 15:09:25 CEST 2014
+
+- décomposer le logiciel en une passe de codage/choix de
+  représentation interne et une passe de compression.
+
+- venir la prochaine fois avec des benchmarks:
+  implémenter plusieurs algos de compression
+  les comparer et comparer avec bzip2, gzip, ...
+
 #20/3 JBY
 avancée sur la compression : il faut essayer de faire deux passes : une de compression à la volée, et une durant la révolution "offline"
 
@@ -8,7 +17,7 @@ pour le 20/02, produire quelqeus documents descriptifs, périodicité, etc.
 #20/02 Olden
 document descriptif rédigé par Julien mis en ligne aujourd'hui. Les données pourront être remise en forme. La compression se fera
 pendant les phases de non-acquisition. Meeting avec les autres groupes le 27. Fichier acquis dans leur totalité avant la compression.
-Cela nous permet de passer par des phases longues de compression sur le fichier. 
+Cela nous permet de passer par des phases longues de compression sur le fichier.
 On attend encore des plages de données plus précises. Mais les données devraient rester de l'ordre du MeV.
 
 #06/03 Olden
