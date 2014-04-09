@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 				case('\n') :
 					/* printf("Ligne %d\n", l++); */
 				case(' ') :
-					n_bits = (state == 0 ? 60 : (state%2 == 0 ?  2 : 14));
+					n_bits = (state == 0 ? 60 : (state%2 == 1 ?  2 : 14));
 					addIntWithNBits(&addChar, neg * number, n_bits);
 					/* printf("Wrote %lld on %d bits\n", neg * number, n_bits); */
 					number = 0;
