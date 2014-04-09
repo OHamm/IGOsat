@@ -64,7 +64,7 @@ int next_state(int n) {
 
 long long int addNewHexa(long int number, char hexa) {
 	if(hexa >= '0' && hexa <= '9') number = number*16 + hexa - '0';
-	else if(hexa >= 'a' && hexa <= 'f') number = number*16 + hexa - 'a';
+	else if(hexa >= 'a' && hexa <= 'f') number = number*16 + 10 + hexa - 'a';
 	else printf("WTF ??\n");
 	return number;
 }
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 	int i;
 	int neg = 1;
 	int state = 0;
-	int l = 0;
+	int n_bits;
 	addChar.t = (int*) calloc(8, sizeof(int));
 	addChar.pos = 0;
 
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
 	 */
 
 	while((nb_lus = read(fd, buffer, 1023)) != 0) {
-		printf("read\n");
+		/* printf("read %d bytes\n", nb_lus); */
 		for(i=0; i<nb_lus; i++) {
 			/* printf("i = %d\n", i); */
 			/* printf("number = %lld\n", number); */
@@ -116,8 +116,9 @@ int main(int argc, char** argv) {
 				case('\n') :
 					/* printf("Ligne %d\n", l++); */
 				case(' ') :
-					addIntWithNBits(&addChar, neg * number,
-									state == 0 ? 60 : (state%2 == 0 ?  2 : 14));
+					n_bits = (state == 0 ? 60 : (state%2 == 0 ?  2 : 14));
+					addIntWithNBits(&addChar, neg * number, n_bits);
+					/* printf("Wrote %lld on %d bits\n", neg * number, n_bits); */
 					number = 0;
 					neg = 1;
 					while((buffer[i] == ' ' || buffer[i] == '\n') && i < nb_lus) i++;
