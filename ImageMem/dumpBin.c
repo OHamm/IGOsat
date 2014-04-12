@@ -49,16 +49,12 @@ void addIntWithNBits(bnp *arg, long long int n, int nb_bits) {
 		return;
 	}
 	for(i=nb_bits-1; i>=0; i--) {
-		/* printf("avdiv\n"); */
-		/* printf("%lld/(pow2[%d] = %lld)\n", n, i, pow2[i]); */
 		addBitStr(arg, (n/pow2[i]) % 2);
-		/* printf("apdiv\n"); */
 	}
 }
 
 int next_state(int n) {
 	int m = (n+1) % 33;
-	/* printf("m = %d\n", m); */
 	return m;
 }
 
@@ -89,47 +85,29 @@ int main(int argc, char** argv) {
 
 	pow2[0] = 1;
 	for(i=1; i<64; i++) pow2[i] = pow2[i-1]*2;
-	/*
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 1);
-	addBitStr(&addChar, 1);
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 1);
-	addBitStr(&addChar, 1);
-
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 1);
-	addBitStr(&addChar, 1);
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 0);
-	addBitStr(&addChar, 1);
-	 */
 
 	while((nb_lus = read(fd, buffer, 1023)) != 0) {
-		/* printf("read %d bytes\n", nb_lus); */
+		/*
+		 * On lit le fichier et on regarde :
+		 *  - Si on est sur un caractère, on l'ajoute au nombre temporaire
+		 *    qu'on est en train de créer.
+		 *  - Si on est sur un espace, on écrit le nombre temporaire dans le
+		 *    fichier en binaire et on remet cette varianle temporaire à 0.
+		 *  - Si on a un retour à la ligne, on ne fait rien de plus.
+		 *
+		 * J'ai aussi ajouté la gestion des nombres négatifs, mais c'est un
+		 * détail d'implémentation.
+		 */
 		for(i=0; i<nb_lus; i++) {
-			/* printf("i = %d\n", i); */
-			/* printf("number = %lld\n", number); */
 			switch(buffer[i]) {
 				case('\n') :
-					/* printf("Ligne %d\n", l++); */
+					break;
 				case(' ') :
 					n_bits = (state == 0 ? 60 : (state%2 == 1 ?  2 : 14));
 					addIntWithNBits(&addChar, neg * number, n_bits);
-					/* printf("Wrote %lld on %d bits\n", neg * number, n_bits); */
 					number = 0;
 					neg = 1;
-					while((buffer[i] == ' ' || buffer[i] == '\n') && i < nb_lus) i++;
-					if(buffer[i] == EOF) return EXIT_SUCCESS;
-					if(i == nb_lus) state--;
-					i--;
-					/* printf("i = %d\n", i); */
-					/* printf("nb_lus = %d\n", nb_lus); */
-					/* printf("state = %d\n", state); */
 					state = next_state(state);
-					/* printf("state = %d\n", state); */
 					break;
 				case(EOF) :
 					return EXIT_SUCCESS;
@@ -141,11 +119,12 @@ int main(int argc, char** argv) {
 					number = addNewHexa(number, buffer[i]);
 					break;
 			}
-						/* printf("Fin boucle for\n"); */
-						/* printf("i = %d\n", i); */
 		}
 	}
-	/* addIntWithNBits(&addChar, -1, 2); */
+	/*
+	 * On finalize en écrivant le dernier octet si on est pas
+	 * à la fin d'un octet en arrivant à la fin du fichier.
+	 */
 	finalize(&addChar);
 	return EXIT_SUCCESS;
 }
