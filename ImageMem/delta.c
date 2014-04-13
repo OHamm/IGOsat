@@ -76,12 +76,8 @@ int main(int argc, char **argv){
 	//Initialisation du delta
 	old = getTime(fd,0);
 	printf(" Delta %lld\n",old);
-	//Boucle temporaire limitée à 40 valeurs due à un bug dans le fichier.
-	//Celle-ci sera modifiée en une boucle infinie qui s'arretera
-	//lorsque la lecture du fichier sera terminée.
-	for(i=1;i<40;i++){
+	for(i=1;(next = getTime(fd,i%2))>=0;i++){
 		//Alterner First et Second
-		next = getTime(fd,i%2);
 		printf(" Delta: %lld\n",deltacompression(old,next));
 		old = next;
 	}
