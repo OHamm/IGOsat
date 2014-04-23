@@ -74,8 +74,28 @@ long long int getTime(int fd, int first){//0 true, 1 false
 long long int deltacompression(long long int old, long long int next){
 	return next - old;
 }
-
+//nombres de bits dans un long long int
+int getSize(long long int val){
+	int i, ret;
+	ret = 0;
+	for(i=0;i<64;i++){
+		if((val>>i)&1){
+			ret = i;
+		}
+	}
+	//+1 car décallage avec boucle for i
+	return ret+1;
+}
+//nombres de bits dans unlong long int encodé en binaire sur 6 bits (2 premiers du char à ignorer)
+char getLength(long long int val){
+	char ret = getSize(val);
+	return ret;
+}
 void writedelta(long long int val, int fd){
+	/* Write:
+	Write last 6 bits of getLength()
+	Write last getSize() bits of deltacompression()
+	*/
 	/* Expl:
 	XXXXXX YYY...YYY 
 	
@@ -99,6 +119,7 @@ int main(int argc, char **argv){
 		printf("ERR OPEN READ\n");
 		return 1;
 	}
+	
 	if((fdw = open(argv[2], O_RDONLY)) < 0){
 		printf("ERR OPEN WRITE\n");
 		return 1;
@@ -108,9 +129,11 @@ int main(int argc, char **argv){
 	printf(" Delta %lld\n",old);
 	for(i=1;(next = getTime(fdr,i%2))>=0;i++){
 		//Alterner First et Second
+		printf(" Length: %d",getSize(deltacompression(old,next)));
 		printf(" Delta: %lld\n",deltacompression(old,next));
 		old = next;
 	}
-	close(fd);
+	close(fdr);
+	close(fdw);
 	return 0;
 }
