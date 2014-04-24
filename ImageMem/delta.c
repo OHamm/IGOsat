@@ -8,7 +8,8 @@
 long long int getTime(int fd, int first){//0 true, 1 false
 	char *buf;
 	long long int val;
-	int i, j;
+	int i, j, tabpos = 0;
+	int *tab;
 	/*Expl
 	Type particule = 2bits
 	Valeur enregistrée = 14 bits
@@ -25,24 +26,29 @@ long long int getTime(int fd, int first){//0 true, 1 false
 
 	Le saut des 31 bytes joue sur le modulo 1 byte via la variable first!
 	*/
-	if((buf = (char*)calloc(8+first, sizeof(char))) == NULL){
+	if((buf = (char*)calloc(40, sizeof(char))) == NULL){
 		printf("ERR CALLOC\n");
 		return -1;
 	}
-	if(read(fd, buf, 8+first) < 0){
+	if((tab = (int*)calloc(40, sizeof(int))) == NULL){
+		printf("ERR CALLOC\n");
+		return -1;
+	}
+	if(read(fd, buf, 40) < 0){
 		printf("ERR READ\n");
 		return -2;
 	}
 
 	//Convertir les bits en long long int (vérifier endian)
+	//Pour temps
 	val = 0;
 	for(i=0;i<8;i++){
 		for(j=0;j<8;j++){
 			if(buf[i]>>(7-j)&1){
-				val*=2;
+				val *= 2;
 				val += 1;
 			}else{
-				val*=2;
+				val *= 2;
 			}
 		}
 	}
@@ -51,20 +57,74 @@ long long int getTime(int fd, int first){//0 true, 1 false
 		val = val<<4;
 	}
 	val = val>>4;
+	int ;
+	//Pour capteurs
 	
-	/* Detail explicatif de suppression:
-	if(first == 0){
-		//Supprimer les 4 derniers bits qui ne sont pas du temps
-		val = val>>4;
-	}else{
-		//Supprimer les 4 premiers bits qui ne sont pas du temps
-		val = val<<4;
-		val = val>>4;
+	//IF XXXXYYYY YYYYYYYY YYYYZZZZ
+	//Lire 4 dernier bits, 8 bits, 4 premier bits
+	//IF YYYYYYYY YYYYYYYY
+	//Lire 8x2 bits
+	//no shift
+	if(first == 1){// YYYYYYYY YYYYYYYY
+		for(i=8;i<40;i=i+2){
+			for(j=0;j<8;j++){
+				if(buf[i]>>(7-j)&1){
+					tab[tabpos] *= 2;
+					tab[tabpos] += 1;
+				}else{
+					tab[tabpos] *= 2;
+				}
+			}
+			for(j=0;j<8;j++){
+				if(buf[i+1]>>(7-j)&1){
+					tab[tabpos] *= 2;
+					tab[tabpos] += 1;
+				}else{
+					tab[tabpos] *= 2;
+				}
+			}
+			tabpos++;
+		}
 	}
-	*/
+	else{// XXXXYYYY YYYYYYYY YYYYZZZZ
+		for(i=7;i<40;i=i+2){
+			for(j=4;j<8;j++){
+				if(buf[i]>>(7-j)&1){
+					tab[tabpos] *= 2;
+					tab[tabpos] += 1;
+				}else{
+					tab[tabpos] *= 2;
+				}
+			}
+			for(j=0;j<8;j++){
+				if(buf[i+1]>>(7-j)&1){
+					tab[tabpos] *= 2;
+					tab[tabpos] += 1;
+				}else{
+					tab[tabpos] *= 2;
+				}
+			}
+			for(j=0;j<4;j++){
+				if(buf[i+2]>>(7-j)&1){
+					tab[tabpos] *= 2;
+					tab[tabpos] += 1;
+				}else{
+					tab[tabpos] *= 2;
+				}
+			}
+			tabpos++;
+		}
+	}
+	for(i=0;i<16;i++){
+		printf(" TABVAL: %d",tab[i]);
+	}
+	printf("\n");
 	
 	//Aller à la valeur suivante.
-	lseek(fd, 31, SEEK_CUR);
+	//-1 car modulo
+	if(first == 0){
+		lseek(fd, -1, SEEK_CUR);
+	}
 	printf("Time: %lld",val);
 	free(buf);
 	return val;
@@ -108,7 +168,7 @@ void writedelta(long long int val, int fd){
 
 	PROBLEME:
 		Necessité d'un tampon pour écrire les bits.
-		taille?
+		taille variable, si multiple de 8bits écrit alors écrire
 	*/
 }
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
