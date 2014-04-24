@@ -30,7 +30,7 @@ long long int getTime(int fd, int first){//0 true, 1 false
 		printf("ERR CALLOC\n");
 		return -1;
 	}
-	if((tab = (int*)calloc(40, sizeof(int))) == NULL){
+	if((tab = (int*)calloc(17, sizeof(int))) == NULL){
 		printf("ERR CALLOC\n");
 		return -1;
 	}
@@ -57,7 +57,6 @@ long long int getTime(int fd, int first){//0 true, 1 false
 		val = val<<4;
 	}
 	val = val>>4;
-	int ;
 	//Pour capteurs
 	
 	//IF XXXXYYYY YYYYYYYY YYYYZZZZ
@@ -119,6 +118,7 @@ long long int getTime(int fd, int first){//0 true, 1 false
 		printf(" TABVAL: %d",tab[i]);
 	}
 	printf("\n");
+	free(tab);
 	
 	//Aller à la valeur suivante.
 	//-1 car modulo
