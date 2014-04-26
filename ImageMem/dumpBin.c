@@ -10,7 +10,7 @@ typedef struct byteandpos {
 	int pos;
 } bnp;
 
-long long int pow2[64];
+unsigned long long int pow2[64];
 
 void displayAsBits(char arg) {
 	int i;
@@ -42,7 +42,7 @@ void finalize(bnp *arg) {
 	}
 }
 
-void addIntWithNBits(bnp *arg, long long int n, int nb_bits) {
+void addIntWithNBits(bnp *arg, unsigned long long int n, int nb_bits) {
 	int i;
 	if(n < 0) {
 		addIntWithNBits(arg, pow2[nb_bits + 1] + n, nb_bits);
@@ -62,7 +62,7 @@ int next_state(int n) {
 	return m;
 }
 
-long long int addNewHexa(long int number, char hexa) {
+unsigned long long int addNewHexa(long int number, char hexa) {
 	if(hexa >= '0' && hexa <= '9') number = number*16 + hexa - '0';
 	else if(hexa >= 'a' && hexa <= 'f') number = number*16 + 10 + hexa - 'a';
 	else printf("WTF ??\n");
@@ -72,12 +72,13 @@ long long int addNewHexa(long int number, char hexa) {
 int main(int argc, char** argv) {
 	bnp addChar;
 	int fd, nb_lus;
-	long long int number = 0;
+	unsigned long long int number = 0;
 	char *buffer = (char*) calloc(1024, sizeof(char));
 	int i;
 	int neg = 1;
 	int state = 0;
 	int n_bits;
+	int nb_ligne = 0;
 	addChar.t = (int*) calloc(8, sizeof(int));
 	addChar.pos = 0;
 
@@ -114,16 +115,18 @@ int main(int argc, char** argv) {
 			/* printf("number = %lld\n", number); */
 			switch(buffer[i]) {
 				case('\n') :
+				  break;
 					/* printf("Ligne %d\n", l++); */
 				case(' ') :
 					n_bits = (state == 0 ? 60 : (state%2 == 1 ?  2 : 14));
-					addIntWithNBits(&addChar, neg * number, n_bits);
+					addIntWithNBits(&addChar, neg * ((long long int) number), n_bits);
 					/* printf("Wrote %lld on %d bits\n", neg * number, n_bits); */
 					number = 0;
 					neg = 1;
+					if(buffer[i] == '\n') printf("nb_ligne = %d\n", nb_ligne++);
 					while((buffer[i] == ' ' || buffer[i] == '\n') && i < nb_lus) i++;
 					if(buffer[i] == EOF) return EXIT_SUCCESS;
-					if(i == nb_lus) state--;
+					if(i == nb_lus) break;
 					i--;
 					/* printf("i = %d\n", i); */
 					/* printf("nb_lus = %d\n", nb_lus); */
