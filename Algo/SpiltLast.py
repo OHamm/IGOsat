@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 def splitter():
 	f = open('EventsScintillator.txt','r')
 	t = open('splitLast','w')
@@ -12,3 +14,5 @@ def splitter():
 		t.write("\n")
 	f.close()
 	t.close()
+
+splitter()
