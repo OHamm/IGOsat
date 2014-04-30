@@ -196,7 +196,7 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	if((fdw = open(argv[2], O_RDONLY)) < 0){
+	if((fdw = open(argv[2], O_RDONLY | O_CREAT, 00333)) < 0){
 		printf("ERR OPEN WRITE\n");
 		return 1;
 	}
