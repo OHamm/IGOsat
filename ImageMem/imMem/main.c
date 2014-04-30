@@ -14,6 +14,12 @@ void combineTwoLines(bin_line *l1, bin_line *l2) {
 	for(i=1; i<40; i++) printf("%c", l2->content[i]);
 }
 
+int newLineBeforeEnd(char *buffer, int size, int pos) {
+				int i;
+				for(i=pos; i<size; i++) if(buffer[i] == '\n') return 1;
+				return 0;
+}
+
 int main(int argc, char** argv) {
 	int i;
 	int index = 0;
@@ -32,6 +38,30 @@ int main(int argc, char** argv) {
 	}
 	bin_line *l1 = (bin_line*) calloc(1, sizeof(bin_line));
 	bin_line *l2 = (bin_line*) calloc(1, sizeof(bin_line));
+	l1->position = END;
+	l2->position = BEGIN;
+	int nb_lus;
+	int tic = 0;
+	nb_lus = read(fd, buffer, 1023);
+	do {
+		if(!newLineBeforeEnd(buffer, 1024, index)) {
+			for(i=index; i<1024; i++) tmp[i-index] = buffer[i];
+			nb_lus = read(fd, tmp + (1024 - index), 1024 - 1);
+			buffer = tmp;
+			index = 1;
+		}
+		/* write(STDOUT_FILENO, buffer, 1023); */
+		if(nb_lus == 0) break;
+		l = getLine(buffer, &index);
+		if(tic % 2 == 0) fillStruct(l, l1);
+		if(tic % 2 == 1) {
+						fillStruct(l, l2);
+						combineTwoLines(l1, l2);
+		}
+		/*if(l != NULL) printLine(l);*/
+		index++;
+		tic++;
+	} while(l != NULL);
 	/*
 	printLine(getLine(buffer, &index));
 	index++;
@@ -52,21 +82,24 @@ int main(int argc, char** argv) {
 	printf("%c", combine_two(0b11110010, 0b11001100, 3));
 	printf("%c%c", ((char*) (&t))[0], ((char*) (&t))[1]);
 	*/
+	/*
 	read(fd, buffer, 1023);
 	do {
 		if(index > (1023 - 316)) {
 			for(i=index; i<1023; i++)
-				tmp[i-index] = buffer[i];
+				tmp[i - 1023 + index] = buffer[i];
 		}
 		buffer = tmp;
 		read(fd, buffer + index, 1023 - index);
 		l = getLine(buffer, &index);
 	} while(l != NULL);
+	*/
 	/*
 	while(getLine(buffer, &index) != NULL) index++;
 	return EXIT_SUCCESS;
 	ligne *l = getLine(buffer, &index);
 	*/
+	/*
 	l1->position = END;
 	fillStruct(l, l1);
 	index++;
@@ -74,4 +107,5 @@ int main(int argc, char** argv) {
 	l2->position = BEGIN;
 	fillStruct(l, l2);
 	combineTwoLines(l1, l2);
+	*/
 }

@@ -4,12 +4,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <math.h>
+#include "sommeTab.h"
 
-long long int getTime(int fd, int first){//0 true, 1 false
+long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	char *buf;
 	long long int val;
 	int i, j, tabpos = 0;
-	int *tab;
 	/*Expl
 	Type particule = 2bits
 	Valeur enregistrée = 14 bits
@@ -29,6 +29,10 @@ long long int getTime(int fd, int first){//0 true, 1 false
 	if((buf = (char*)calloc(40, sizeof(char))) == NULL){
 		printf("ERR CALLOC\n");
 		return -1;
+	}
+	//check this
+	if(tab != NULL){
+		free(tab);
 	}
 	if((tab = (int*)calloc(17, sizeof(int))) == NULL){
 		printf("ERR CALLOC\n");
@@ -114,18 +118,19 @@ long long int getTime(int fd, int first){//0 true, 1 false
 			tabpos++;
 		}
 	}
+	/*
 	for(i=0;i<16;i++){
 		printf(" TABVAL: %d",tab[i]);
 	}
 	printf("\n");
-	free(tab);
+	*/
 	
 	//Aller à la valeur suivante.
 	//-1 car modulo
 	if(first == 0){
 		lseek(fd, -1, SEEK_CUR);
 	}
-	printf("Time: %lld",val);
+	printf("Time: %lld\n",val);
 	free(buf);
 	return val;
 }
@@ -171,10 +176,21 @@ void writedelta(long long int val, int fd){
 		taille variable, si multiple de 8bits écrit alors écrire
 	*/
 }
+
+void print_capteurs(int *capteurs) {
+				int i;
+				int *sommes = NULL;
+				printf("Somme launched\n");
+				somme_capteurs(capteurs, sommes);
+				printf("Somme done\n");
+				for(i=0; i<5; i++) printf("Capteur %d : %d\n", i, sommes[i]);
+}
+
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
 int main(int argc, char **argv){
 	int fdr, fdw, i; 
 	long long int old, next;
+	int* tab = NULL;
 	if((fdr = open(argv[1], O_RDONLY)) < 0){
 		printf("ERR OPEN READ\n");
 		return 1;
@@ -185,12 +201,13 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	//Initialisation du delta
-	old = getTime(fdr,0);
-	printf(" Delta %lld\n",old);
-	for(i=1;(next = getTime(fdr,i%2))>=0;i++){
+	old = getVals(fdr,0, tab);
+	printf("Delta %lld\n", old);
+	for(i = 1; (next = (unsigned int) getVals(fdr, i%2, tab)) >= 0; i++){
 		//Alterner First et Second
-		printf(" Length: %d",getSize(deltacompression(old,next)));
-		printf(" Delta: %lld\n",deltacompression(old,next));
+		printf("Length: %d\n", getSize(deltacompression(old, next)));
+		printf("Delta: %lld\n", deltacompression(old, next));
+		print_capteurs(tab);
 		old = next;
 	}
 	close(fdr);
