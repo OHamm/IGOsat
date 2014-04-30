@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,7 +30,15 @@ ligne* getLine(char *buffer, int *index) {
 	int i;
 	ligne *retour = (ligne*) malloc(sizeof(ligne));
 	memset(retour, 0, sizeof(ligne));
-	if(buffer[*index] == EOF) return NULL;
+	/*
+	write(STDOUT_FILENO, buffer, 1024);
+	write(STDOUT_FILENO, "\nOK\n", 4);
+	 */
+	for(i = 0; i < 1024; i++) {
+					/*printf("Char[%d] = %c\n", i, buffer[i]);*/
+					if(buffer[i] == EOF) printf("EOF !!\n");
+	}
+	if(buffer[1] == EOF) return NULL;
 	retour->date = computeDate(buffer, index);
 	(*index)++;
 	for(i=0; i<16; i++) {

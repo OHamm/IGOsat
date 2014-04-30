@@ -118,7 +118,7 @@ int opti_line(char* line, int pair, char* gpes) {
 				for(i=0; i<5; i++) {
 								for(j=n_capt[i][0]; j<n_capt[i][1]; j++) {
 												qualite = raw32[j*2] >> 6;
-												qualite = qualite % 4;
+												qualite = qualite & 0b00000011;
 												qualite_globale[i] |= qualite;
 								}
 				}
@@ -127,7 +127,7 @@ int opti_line(char* line, int pair, char* gpes) {
 								((qualite_globale[1] & 3) << 4) +
 								((qualite_globale[2] & 3) << 2) +
 								(qualite_globale[3] & 3);
-				for(i=0; i<5; i++) printf("Qualité globale[%d] = %d\n", 
+				for(i=0; i<5; i++) printf("Qualité globale[%d] = %d--fin--\n", 
 												i, qualite_globale[i]);
 				print_one_bin(first_qual);
 				printf("\n");
@@ -135,23 +135,22 @@ int opti_line(char* line, int pair, char* gpes) {
 				char second_qual = qualite_globale[4] << 6;
 				int intens = 0;
 				for(i=0; i<5; i++) {
-								printf("Qualité globale[%d] = %d\n", i, qualite_globale[i]);
-								if(qualite_globale[i] == 1 || qualite_globale[i] == 2) {
+								printf("Qualité globale[%d] = %d--fin--\n", 
+																i, qualite_globale[i]);
+								if(qualite_globale[i] == 1 || qualite_globale[i] == 0) {
 												intens = 0;
 												for(j=n_capt[i][0]; j<n_capt[i][1]; j++) {
 																printf("intens : %d\n", intens);
-																printf("raw32[2*%d] & 63 = ", j);
-																print_one_bin((raw32[2*j] & 63));
+																printf("raw32[2*%d] & 0b00001111 = ", j);
+																print_one_bin((raw32[2*j+1] & 0b00001111));
 																printf("\n");
-																intens += (raw32[2*j] & 63)*256;
+																intens += (raw32[2*j] & 0b00001111)*256;
 																printf("raw32[2*%d] = ", j+1);
 																print_one_bin((raw32[2*j+1]));
 																printf("\n");
-																intens += raw32[2*j+1];
-																intens += 256;
+																intens += raw32[2*j];
 																printf("intens : %d\n", intens);
 												}
-												intens -= 256;
 												printf("intens to write : %d : ", intens);
 												print_one_bin(intens/256);
 												print_one_bin(intens);
@@ -201,19 +200,24 @@ int main(int argc, char** argv) {
 								close(fd);
 								return EXIT_FAILURE;
 				}
-				nb_octets = opti_line(buffer, 1, gpes);
-				printf("Original : \n");
-				print_bin(buffer, 40);
-				printf("\n");
-				printf("Compressé : \n");
-				print_bin(gpes, nb_octets);
-				printf("\n");
-				nb_octets = opti_line(buffer+39, 0, gpes);
-				printf("Original : \n");
-				print_bin(buffer+39, 40);
-				printf("\n");
-				printf("Compressé : \n");
-				print_bin(gpes, nb_octets);
-				printf("\n");
+				int i, j;
+				char *point_buff = buffer;
+				for(i=0; i<10; i++) {
+								nb_octets = opti_line(point_buff, (i+1)%2, gpes);
+								printf("Original : i ");
+								printf(i%2 == 0 ? "" : "im");
+								printf("pair\n");
+								printf("Buffer : ");
+								for(j=0; j<40; j++) printf("%c", buffer[j]);
+								printf("\n\\buffer\n");
+								write(STDOUT_FILENO, buffer, 40);
+								print_bin(point_buff, 40);
+								printf("\n");
+								printf("Compressé : \n");
+								print_bin(gpes, nb_octets);
+								printf("\n");
+								point_buff += (i%2 == 0 ? 39 : 40);
+
+				}
 				return EXIT_SUCCESS;
 }
