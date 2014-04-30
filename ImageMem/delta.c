@@ -121,7 +121,6 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 		printf(" TABVAL: %d",tab[i]);
 	}
 	printf("\n");
-	free(tab);
 	
 	//Aller à la valeur suivante.
 	//-1 car modulo
