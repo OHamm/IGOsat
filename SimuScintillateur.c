@@ -62,12 +62,12 @@ const double EminEasiroc = 0.02;
 const double EmaxEasiroc = 2.0;
 
 // facteur haut/bas gains easiroc
-const double GFactEasiroc = 10;
-const double EADCThreshEasiroc = EminEasiroc + (EmaxEasiroc-EminEasiroc)/(GFactEasiroc+1.0);
+double GFactEasiroc = 10;
+double EADCThreshEasiroc = EminEasiroc + (EmaxEasiroc-EminEasiroc)/(GFactEasiroc+1.0);
 
 // Nombre de bits de codage Easiroc
-const int NbBitsEasiroc = 14;
-const unsigned int MaxValEasiroc = (1<<NbBitsEasiroc)-1;
+int NbBitsEasiroc = 14;
+unsigned int MaxValEasiroc = (1<<NbBitsEasiroc)-1;
 
 // Granularité de l'horloge Easiroc
 const double TimeGranularityEasiroc = 1e-10;

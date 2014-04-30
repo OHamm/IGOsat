@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <math.h>
+#include "sommeTab.h"
 
 long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	char *buf;
@@ -117,17 +118,19 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 			tabpos++;
 		}
 	}
+	/*
 	for(i=0;i<16;i++){
 		printf(" TABVAL: %d",tab[i]);
 	}
 	printf("\n");
+	*/
 	
 	//Aller à la valeur suivante.
 	//-1 car modulo
 	if(first == 0){
 		lseek(fd, -1, SEEK_CUR);
 	}
-	printf("Time: %lld",val);
+	printf("Time: %lld\n",val);
 	free(buf);
 	return val;
 }
@@ -173,6 +176,16 @@ void writedelta(long long int val, int fd){
 		taille variable, si multiple de 8bits écrit alors écrire
 	*/
 }
+
+void print_capteurs(int *capteurs) {
+				int i;
+				int *sommes = NULL;
+				printf("Somme launched\n");
+				somme_capteurs(capteurs, sommes);
+				printf("Somme done\n");
+				for(i=0; i<5; i++) printf("Capteur %d : %d\n", i, sommes[i]);
+}
+
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
 int main(int argc, char **argv){
 	int fdr, fdw, i; 
@@ -189,11 +202,12 @@ int main(int argc, char **argv){
 	}
 	//Initialisation du delta
 	old = getVals(fdr,0, tab);
-	printf(" Delta %lld\n",old);
-	for(i=1;(next = getVals(fdr,i%2, tab))>=0;i++){
+	printf("Delta %lld\n", old);
+	for(i = 1; (next = (unsigned int) getVals(fdr, i%2, tab)) >= 0; i++){
 		//Alterner First et Second
-		printf(" Length: %d",getSize(deltacompression(old,next)));
-		printf(" Delta: %lld\n",deltacompression(old,next));
+		printf("Length: %d\n", getSize(deltacompression(old, next)));
+		printf("Delta: %lld\n", deltacompression(old, next));
+		print_capteurs(tab);
 		old = next;
 	}
 	close(fdr);
