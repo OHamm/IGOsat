@@ -10,7 +10,7 @@ typedef struct byteandpos {
 	int pos;
 } bnp;
 
-long long int pow2[64];
+unsigned long long int pow2[64];
 
 void displayAsBits(char arg) {
 	int i;
@@ -42,7 +42,7 @@ void finalize(bnp *arg) {
 	}
 }
 
-void addIntWithNBits(bnp *arg, long long int n, int nb_bits) {
+void addIntWithNBits(bnp *arg, unsigned long long int n, int nb_bits) {
 	int i;
 	if(n < 0) {
 		addIntWithNBits(arg, pow2[nb_bits + 1] + n, nb_bits);
@@ -58,7 +58,7 @@ int next_state(int n) {
 	return m;
 }
 
-long long int addNewHexa(long int number, char hexa) {
+unsigned long long int addNewHexa(long int number, char hexa) {
 	if(hexa >= '0' && hexa <= '9') number = number*16 + hexa - '0';
 	else if(hexa >= 'a' && hexa <= 'f') number = number*16 + 10 + hexa - 'a';
 	else printf("WTF ??\n");
@@ -68,12 +68,13 @@ long long int addNewHexa(long int number, char hexa) {
 int main(int argc, char** argv) {
 	bnp addChar;
 	int fd, nb_lus;
-	long long int number = 0;
+	unsigned long long int number = 0;
 	char *buffer = (char*) calloc(1024, sizeof(char));
 	int i;
 	int neg = 1;
 	int state = 0;
 	int n_bits;
+	int nb_ligne = 0;
 	addChar.t = (int*) calloc(8, sizeof(int));
 	addChar.pos = 0;
 
