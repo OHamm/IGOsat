@@ -13,21 +13,22 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 				char *buf;
 				long long int val;
 				int i, j, tabpos = 0;
-				/*Expl
-					Type particule = 2bits
-					Valeur enregistrée = 14 bits
-					Temps = 60 bits
-
-First:
-12345678.(x6).1234XXXX
-Second:
-32 bytes d'écart (2+14 *16 bits), mais 4 bits de First = décalage de 4 bits
-<=>
-1234XXXX XXXXXXXX XXXXYYYY YYYYYYYY YYYY.(x13).WWWWZZZZ ZZZZ1234 5678...
-<=> La valeur suivante aura un décalage de 8 bits (1 byte)
-<=> Le schéma est identique à First
-
-Le saut des 31 bytes joue sur le modulo 1 byte via la variable first!
+				/* Expl
+				 * Type particule = 2bits
+				 * 				 Valeur enregistrée = 14 bits
+				 * 				 Temps = 60 bits
+				 * First:
+				 * 12345678.(x6).1234XXXX
+				 * Second:
+				 * 32 bytes d'écart (2+14 *16 bits), 
+				 * mais 4 bits de First = décalage de 4 bits
+				 * <=>
+				 * 1234XXXX XXXXXXXX XXXXYYYY YYYYYYYY 
+				 * YYYY.(x13).WWWWZZZZ ZZZZ1234 5678...
+				 * <=> La valeur suivante aura un décalage de 8 bits (1 byte)
+				 * <=> Le schéma est identique à First
+				 * Le saut des 31 bytes joue sur le modulo 1 
+				 * byte via la variable first!
 				 */
 				if((buf = (char*)calloc(40, sizeof(char))) == NULL){
 								printf("ERR CALLOC\n");
@@ -153,7 +154,9 @@ int getSize(long long int val){
 				//+1 car décallage avec boucle for i
 				return ret+1;
 }
-//nombres de bits dans unlong long int encodé en binaire sur 6 bits (2 premiers du char à ignorer)
+
+/* nombres de bits dans unlong long int encodé en 
+ * binaire sur 6 bits (2 premiers du char à ignorer) */
 char getLength(long long int val){
 				char ret = getSize(val);
 				return ret;
@@ -373,7 +376,7 @@ int main(int argc, char **argv){
 								somme_capteurs(capteurs, sommes);
 								int quality_capteur = 0;
 								for(i=0; i<5; i++) quality_capteur += 
-																	(((sommes[i] >> 16) & 0b11) << 2*i);
+												(((sommes[i] >> 16) & 0b11) << 2*i);
 								addCapteurInd(buf, quality_capteur);
 								for(i=0; i<5; i++) 
 												addCapteurVal(buf, (sommes[i]) & 0xffff);
