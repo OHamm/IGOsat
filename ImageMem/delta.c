@@ -30,6 +30,7 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	*/
 	if((buf = (char*)calloc(40, sizeof(char))) == NULL){
 		printf("ERR CALLOC\n");
+		perror("");
 		return -1;
 	}
 	//check this
@@ -38,10 +39,12 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	}
 	if((tab = (int*)calloc(17, sizeof(int))) == NULL){
 		printf("ERR CALLOC\n");
+		perror("");
 		return -1;
 	}
 	if(read(fd, buf, 40) < 0){
 		printf("ERR READ\n");
+		perror("");
 		return -2;
 	}
 
@@ -355,12 +358,13 @@ int main(int argc, char **argv){
 	#ifdef DEBUG
 		printf(" Delta %lld\n",old);
 	#endif
-	for(i=1;(next = getVals(fdr,i%2, tab))>=0;i++){
+	for(i=1;(next = getVals(fdr,i%2, tab))>0;i++){
 		//Alterner First et Second
 		#ifdef DEBUG
-			printf(" Length: %d",getSize(deltacompression(old,next)));
+			printf("\nNext: %lld\nOld: %lld\n",next, old);
+			printf(" Length: %d\n",getSize(deltacompression(old,next)));
 			printf(" Delta: %lld\n",deltacompression(old,next));
-			print_capteurs(tab);
+			//print_capteurs(tab);
 		#endif
 		addDelta(buf, deltacompression(old,next));
 		old = next;
