@@ -353,11 +353,11 @@ int main(int argc, char **argv){
 	old = getVals(fdr,0, tab);
 	addDelta(buf, old);
 	//TODO ADD FIRST CAPTEUR HERE
-	
 	//End init
 	#ifdef DEBUG
 		printf(" Delta %lld\n",old);
 	#endif
+	
 	for(i=1;(next = getVals(fdr,i%2, tab))>0;i++){
 		//Alterner First et Second
 		#ifdef DEBUG
@@ -370,6 +370,7 @@ int main(int argc, char **argv){
 		old = next;
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
+	
 	close(fdr);
 	close(fdw);
 	freeAll(buf);
