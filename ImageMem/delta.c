@@ -181,7 +181,6 @@ void initBufferStruct(buffer *buf){
 void biggify(buffer *buf){
 	if((buf->buffer = (char*)realloc(buf->buffer, buf->bufferSize*2)) == NULL){
 		printf("ERR REALLOC\n");
-		buf->buffer = NULL;
 		buf->bufferSize = 0;
 		return;
 	}
