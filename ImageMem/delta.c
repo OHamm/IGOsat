@@ -223,10 +223,10 @@ void insertCaptInBuffer(buffer *buf, int val, int length){
 	for(i=0; i<length; i++){
 		if(val>>i&1){
 			checkBuffer(buf);
-			buf->buffer[buf->bitPos/8] += pow(2,buf->bitPos%8);
+			buf->buffer[buf->bitPos/8] += pow(2,7-buf->bitPos%8);
 			buf->bitPos++;
 			#ifdef DEBUG
-				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,7-buf->bitPos%8));
 			#endif
 		}else{
 			#ifdef DEBUG
@@ -253,12 +253,12 @@ void insertDeltInBuffer(buffer *buf, long long int val, int length){
 		printf("\nAdding %lld of length %d, bit pos is %d\n",val, length, buf->bitPos);
 	#endif
 	for(i=0; i<6; i++){
-		if(length>>i&1){
+		if(length>>(5-i)&1){
 			checkBuffer(buf);
-			buf->buffer[(buf->bitPos/8)] += pow(2,buf->bitPos%8);
+			buf->buffer[(buf->bitPos/8)] += pow(2,7-buf->bitPos%8);
 			buf->bitPos++;
 			#ifdef DEBUG
-				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,7-buf->bitPos%8));
 			#endif
 			
 		}else{
@@ -273,12 +273,12 @@ void insertDeltInBuffer(buffer *buf, long long int val, int length){
 	#endif
 	//Write delta
 	for(i=0; i<length; i++){
-		if(val>>i&1){
+		if(val>>(length-1-i)&1){
 			checkBuffer(buf);
-			buf->buffer[buf->bitPos/8] += pow(2,buf->bitPos%8);
+			buf->buffer[buf->bitPos/8] += pow(2,7-buf->bitPos%8);
 			buf->bitPos++;
 			#ifdef DEBUG
-				printf("DELTA VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+				printf("DELTA VAL %d %lf\n",buf->bitPos/8,pow(2,7-buf->bitPos%8));
 			#endif
 			
 		}else{
@@ -365,7 +365,7 @@ int main(int argc, char **argv){
 	#ifdef DEBUG
 		printf(" Delta %lld\n",old);
 	#endif
-	
+	/*
 	for(i=1;(next = getVals(fdr,i%2, tab))>0;i++){
 		//Alterner First et Second
 		#ifdef DEBUG
@@ -378,7 +378,7 @@ int main(int argc, char **argv){
 		old = next;
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
-	
+	*/
 	close(fdr);
 	close(fdw);
 	freeAll(buf);
