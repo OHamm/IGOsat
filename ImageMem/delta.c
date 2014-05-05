@@ -365,7 +365,6 @@ int main(int argc, char **argv){
 	#ifdef DEBUG
 		printf(" Delta %lld\n",old);
 	#endif
-	/*
 	for(i=1;(next = getVals(fdr,i%2, tab))>0;i++){
 		//Alterner First et Second
 		#ifdef DEBUG
@@ -378,7 +377,6 @@ int main(int argc, char **argv){
 		old = next;
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
-	*/
 	close(fdr);
 	close(fdw);
 	freeAll(buf);
