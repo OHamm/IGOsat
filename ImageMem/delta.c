@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -123,6 +124,15 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 			tabpos++;
 		}
 	}
+
+#ifdef DEBUG
+	for(i=0;i<16;i++){
+		printf("Capteur[%d]: %d\n", i, tab[i]);
+		printf("Quality = %d\n", (tab[i] & 0xC000) >> 14);
+	}
+	printf("\n");
+#endif
+	
 	//Aller à la valeur suivante.
 	//-1 car modulo
 	if(first == 0){
@@ -317,12 +327,8 @@ void freeAll(buffer *buf){
 	free(buf);
 }
 
-void print_capteurs(int *capteurs) {
+void print_capteurs(int *sommes) {
 				int i;
-				int *sommes = NULL;
-				printf("Somme launched\n");
-				somme_capteurs(capteurs, sommes);
-				printf("Somme done\n");
 				for(i=0; i<5; i++) printf("Capteur %d : %d\n", i, sommes[i]);
 }
 
@@ -330,6 +336,8 @@ void print_capteurs(int *capteurs) {
 int main(int argc, char **argv){
 	int fdr, fdw, i; 
 	long long int old, next;
+	int *sommes = (int*) malloc(5 * sizeof(int));
+	memset(sommes, 0, 5 * sizeof(int));
 	int* tab = NULL;
 	buffer *buf;
 	if((fdr = open(argv[1], O_RDONLY)) < 0){
