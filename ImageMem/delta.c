@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <math.h>
 //ADD -DDEBUG for debug options
+#include "sommeTab.h"
 
 /** GETTING VALS FROM BINARY FILE **/
 long long int getVals(int fd, int first, int* tab){//0 true, 1 false
@@ -321,6 +322,16 @@ void freeAll(buffer *buf){
 	}
 	free(buf);
 }
+
+void print_capteurs(int *capteurs) {
+				int i;
+				int *sommes = NULL;
+				printf("Somme launched\n");
+				somme_capteurs(capteurs, sommes);
+				printf("Somme done\n");
+				for(i=0; i<5; i++) printf("Capteur %d : %d\n", i, sommes[i]);
+}
+
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
 int main(int argc, char **argv){
 	int fdr, fdw, i; 
@@ -358,6 +369,7 @@ int main(int argc, char **argv){
 		#ifdef DEBUG
 			printf(" Length: %d",getSize(deltacompression(old,next)));
 			printf(" Delta: %lld\n",deltacompression(old,next));
+			print_capteurs(tab);
 		#endif
 			printf("VAL: %lld\n",old);
 		addDelta(buf, deltacompression(old,next));
