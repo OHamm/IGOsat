@@ -120,13 +120,6 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 			tabpos++;
 		}
 	}
-	#ifdef DEBUG
-		for(i=0;i<16;i++){
-			printf(" TABVAL: %d",tab[i]);
-		}
-		printf("\n");
-	#endif
-	
 	//Aller à la valeur suivante.
 	//-1 car modulo
 	if(first == 0){
@@ -135,7 +128,6 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	#ifdef DEBUG
 		printf("Time: %lld",val);
 	#endif
-	free(buf);
 	return val;
 }
 /** END GETTING VALS FROM BINARY FILE **/
@@ -371,7 +363,6 @@ int main(int argc, char **argv){
 			printf(" Delta: %lld\n",deltacompression(old,next));
 			print_capteurs(tab);
 		#endif
-			printf("VAL: %lld\n",old);
 		addDelta(buf, deltacompression(old,next));
 		old = next;
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
