@@ -1,34 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define GETQUAL(c) ((c) & 0x0000C000)
-#define GETVAL(c) ((c) & 0x00003FFF)
+#define GETQUAL(c) (c & 49152)
+#define GETVAL(c) (c & 16383)
 
 int somme_capteurs(int *capteurs, int *retour) {
-				free(retour);
 				/*
 				 * Capteurs contient les 16 capteurs sous la forme :
 				 * XXYYYYYY YYYYYYYY
 				 * XX = qualite
 				 * YYYYYY YYYYYYYY = intensité
 				 */
-				printf("Calloc in progress\n");
-				retour = (int*) calloc(5, sizeof(int));
-				printf("Calloc done\n");
-
-				char tmp = GETVAL(capteurs[0]);
 
 				retour[0] &= ((char)(GETQUAL(capteurs[0])) << 2);
 				retour[0] += ((char)(GETVAL(capteurs[0])));
-				printf("retour[0] done\n");
+
 				retour[0] &= (GETQUAL(capteurs[1]) << 2);
 				retour[0] += (GETVAL(capteurs[1]));
 				retour[0] &= (GETQUAL(capteurs[2]) << 2);
 				retour[0] += (GETVAL(capteurs[2]));
 				retour[0] &= (GETQUAL(capteurs[3]) << 2);
 				retour[0] += (GETVAL(capteurs[3]));
-
-				printf("First group done\n");
 
 				retour[1] &= (GETQUAL(capteurs[4]) << 2);
 				retour[1] += (GETVAL(capteurs[4]));
