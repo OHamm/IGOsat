@@ -4,7 +4,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <math.h>
+//ADD -DDEBUG for debug options
 
+/** GETTING VALS FROM BINARY FILE **/
 long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	char *buf;
 	long long int val;
@@ -117,21 +119,26 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 			tabpos++;
 		}
 	}
-	for(i=0;i<16;i++){
-		printf(" TABVAL: %d",tab[i]);
-	}
-	printf("\n");
+	#ifdef DEBUG
+		for(i=0;i<16;i++){
+			printf(" TABVAL: %d",tab[i]);
+		}
+		printf("\n");
+	#endif
 	
 	//Aller à la valeur suivante.
 	//-1 car modulo
 	if(first == 0){
 		lseek(fd, -1, SEEK_CUR);
 	}
-	printf("Time: %lld",val);
+	#ifdef DEBUG
+		printf("Time: %lld",val);
+	#endif
 	free(buf);
 	return val;
 }
-
+/** END GETTING VALS FROM BINARY FILE **/
+/** DELTA STUFF **/
 //Gain moyen avec le fichier donné >= 30 bits, soit >= 50%
 long long int deltacompression(long long int old, long long int next){
 	return next - old;
@@ -153,50 +160,212 @@ char getLength(long long int val){
 	char ret = getSize(val);
 	return ret;
 }
-void writedelta(long long int val, int fd){
-	/* Write:
-	Write last 6 bits of getLength()
-	Write last getSize() bits of deltacompression()
-	*/
-	/* Expl:
-	XXXXXX YYY...YYY 
-	
-	XXXXXX:
-		Size of delta = 6bits <-> longueur de delta 1 -> 63 bits
-		Or taille temps max = 60 bits.
-	
-	YYY...YYY:
-		Delta, varie entre 0 et 60 bits.
+/** END DELTA STUFF **/
 
-	PROBLEME:
-		Necessité d'un tampon pour écrire les bits.
-		taille variable, si multiple de 8bits écrit alors écrire
-	*/
+/** WRITING STUFF **/
+typedef struct buffer{
+	int bufferSize;
+	int bitPos;
+	int fd;
+	char* buffer;
+} buffer;
+
+void initBufferStruct(buffer *buf){
+	if(buf->buffer != NULL){
+		#ifdef DEBUG
+			printf("FREEING\n");
+		#endif
+		free(buf->buffer);
+	}
+	if((buf->buffer = (char*)calloc(1, sizeof(char))) == NULL){
+		printf("ERR CALLOC\n");
+		return;
+	}
+	buf->bufferSize = 1;
+	buf->bitPos = 0;
+}
+/* Théoriquement jamais appelé */
+void biggify(buffer *buf){
+	if((buf->buffer = (char*)realloc(buf->buffer, buf->bufferSize*2)) == NULL){
+		printf("ERR REALLOC\n");
+		buf->buffer = NULL;
+		buf->bufferSize = 0;
+		return;
+	}
+	buf->bufferSize *= 2;
+}
+void checkBuffer(buffer *buf){
+	if(buf->bufferSize -1 <= buf->bitPos/8){
+		#ifdef DEBUG
+			printf("\nMaking buffer bigger\n");
+		#endif
+		biggify(buf);
+	}
+}
+void writeToFile(buffer *buf){
+	//TODO check if fail
+	#ifdef DEBUG
+		printf("\nWriting %d char %d bits stuff to %d\n",buf->bitPos/8, buf->bitPos, buf->fd);
+	#endif
+	if(write(buf->fd, buf->buffer, buf->bitPos/8)<0){
+		printf("\nERR WRITE\n");
+	}
+	initBufferStruct(buf);
+}
+//Capteur
+void insertCaptInBuffer(buffer *buf, int val, int length){
+	int i;
+	for(i=0; i<length; i++){
+		if(val>>i&1){
+			checkBuffer(buf);
+			buf->buffer[buf->bitPos/8] += pow(2,buf->bitPos%8);
+			buf->bitPos++;
+			#ifdef DEBUG
+				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+			#endif
+		}else{
+			#ifdef DEBUG
+				printf("LEN VAL %d\n",buf->bitPos/8);
+			#endif
+			buf->bitPos++;
+		}
+	}
+	#ifdef DEBUG
+		printf("BIT POS %d\n",buf->bitPos);
+	#endif
+	if(buf->bitPos%8 == 0){
+		#ifdef DEBUG
+			printf("\nWRITING TO FILE\n");
+		#endif
+		writeToFile(buf);
+	}
+}
+//Delta
+void insertDeltInBuffer(buffer *buf, long long int val, int length){
+	int i;
+	//Write length
+	#ifdef DEBUG
+		printf("\nAdding %lld of length %d, bit pos is %d\n",val, length, buf->bitPos);
+	#endif
+	for(i=0; i<6; i++){
+		if(length>>i&1){
+			checkBuffer(buf);
+			buf->buffer[(buf->bitPos/8)] += pow(2,buf->bitPos%8);
+			buf->bitPos++;
+			#ifdef DEBUG
+				printf("LEN VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+			#endif
+			
+		}else{
+			buf->bitPos++;
+			#ifdef DEBUG
+				printf("LEN VAL %d\n",buf->bitPos/8);
+			#endif
+		}
+	}
+	#ifdef DEBUG
+		printf("BIT POS %d\n",buf->bitPos);
+	#endif
+	//Write delta
+	for(i=0; i<length; i++){
+		if(val>>i&1){
+			checkBuffer(buf);
+			buf->buffer[buf->bitPos/8] += pow(2,buf->bitPos%8);
+			buf->bitPos++;
+			#ifdef DEBUG
+				printf("DELTA VAL %d %lf\n",buf->bitPos/8,pow(2,buf->bitPos%8));
+			#endif
+			
+		}else{
+			buf->bitPos++;
+			#ifdef DEBUG
+				printf("DELTA VAL %d\n",buf->bitPos/8);
+			#endif
+		}
+	}
+	#ifdef DEBUG
+		printf("BIT POS %d\n",buf->bitPos);
+	#endif
+	if(buf->bitPos%8 == 0){
+		#ifdef DEBUG
+			printf("\nWRITING TO FILE\n");
+		#endif
+		writeToFile(buf);
+	}
+	#ifdef DEBUG
+		printf("BIT POS %d\n",buf->bitPos);
+	#endif
+}
+/** CALL THESE FUNCTIONS ONLY **/
+//Delta
+void addDelta(buffer *buf, long long int val){
+	insertDeltInBuffer(buf, val, getSize(val));
+}
+//16bits
+void addCapteurVal(buffer *buf, int val){
+	insertCaptInBuffer(buf, val, 16);
+}
+//10bits
+void addCapteurInd(buffer *buf, int val){
+	insertCaptInBuffer(buf, val, 10);
+}
+/** END CALL THESE FUNCTIONS ONLY **/
+/** END WRITING STUFF **/
+
+void freeAll(buffer *buf){
+	if(buf->buffer != NULL){
+		#ifdef DEBUG
+			printf("FREEING\n");
+		#endif
+		free(buf->buffer);
+	}
+	free(buf);
 }
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
 int main(int argc, char **argv){
 	int fdr, fdw, i; 
 	long long int old, next;
 	int* tab = NULL;
+	buffer *buf;
 	if((fdr = open(argv[1], O_RDONLY)) < 0){
 		printf("ERR OPEN READ\n");
 		return 1;
 	}
-	
-	if((fdw = open(argv[2], O_RDONLY)) < 0){
+	if((fdw = open(argv[2], O_WRONLY)) < 0){
 		printf("ERR OPEN WRITE\n");
 		return 1;
 	}
+	//Init structure
+	if((buf = (buffer*)calloc(1, sizeof(buffer))) == NULL){
+		printf("ERR CALLOC\n");
+		return 1;
+	}
+	initBufferStruct(buf);
+	buf->fd = fdw;
+	//End init structure
+
 	//Initialisation du delta
 	old = getVals(fdr,0, tab);
-	printf(" Delta %lld\n",old);
+	addDelta(buf, old);
+	//TODO ADD FIRST CAPTEUR HERE
+	
+	//End init
+	#ifdef DEBUG
+		printf(" Delta %lld\n",old);
+	#endif
 	for(i=1;(next = getVals(fdr,i%2, tab))>=0;i++){
 		//Alterner First et Second
-		printf(" Length: %d",getSize(deltacompression(old,next)));
-		printf(" Delta: %lld\n",deltacompression(old,next));
+		#ifdef DEBUG
+			printf(" Length: %d",getSize(deltacompression(old,next)));
+			printf(" Delta: %lld\n",deltacompression(old,next));
+		#endif
+			printf("VAL: %lld\n",old);
+		addDelta(buf, deltacompression(old,next));
 		old = next;
+		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
 	close(fdr);
 	close(fdw);
+	freeAll(buf);
 	return 0;
 }
