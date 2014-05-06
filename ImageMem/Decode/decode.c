@@ -5,11 +5,20 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <math.h>
-//16 bits
 //TODO TEST
+//00 01 10 11
 int getNbrCapteur(int val){
-	return -1;
+	int nbrCapteur, i;
+	nbrCapteur = 0;
+	for(i=0; i<8; i+=2){
+		if(val>>i & 0b00 || val>>i & 0b10){
+			nbrCapteur++;
+		}
+	}
+	printf("VAL CAPT: %d NBR CAPT: %d\n",val, nbrCapteur);
+	return nbrCapteur;
 }
+//16 bits
 void getCapteurVal(int fd, int pos, int nbrCapteur){
 	char *buf;
 	int i, j, nbrBuf, nbrBitRead, exitFlag, tmp, val;
@@ -23,7 +32,7 @@ void getCapteurVal(int fd, int pos, int nbrCapteur){
 		perror("");
 		return;
 	}
-	if((vals = (int*)calloc(nbrBuf, sizeof(int))) == NULL){
+	if((vals = (int*)calloc(nbrCapteur, sizeof(int))) == NULL){
 		printf("ERR CALLOC\n");
 		perror("");
 		return;
@@ -211,14 +220,16 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	//counter = nbr bits read in file
-	for(counter=0; (tmpDeltaSize = getDeltaSize(fd, 0))>0; counter+=tmpDeltaSize){
-		printf("Val %d\n",tmpDeltaSize);
+	for(counter=0; (tmpDeltaSize = getDeltaSize(fd, counter%8))>0; counter+=tmpDeltaSize){
+		printf("Counter %d counterMod %d\n",counter, counter%8);
+		printf("Delta size %d\n",tmpDeltaSize);
 		printf("Delta %lld\n",getDelta(fd, 6, tmpDeltaSize));
+		
 		//??????????????????????
 		tmpCapteurOnOff = getCapteurOnOff(fd, counter%8);
 		//??????????????????????
 		
-		counter+= tmpCapteurOnOff;
+		counter+= 16*tmpCapteurOnOff;
 		
 		//??????????????????????
 		getCapteurVal(fd,counter%8,tmpCapteurOnOff);
