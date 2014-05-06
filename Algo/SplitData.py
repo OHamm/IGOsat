@@ -1,4 +1,4 @@
-#!/usr/bin/python3.3
+#!/usr/bin/python3
 
 def splitter():
 	f = open('EventsScintillator.txt','r')
