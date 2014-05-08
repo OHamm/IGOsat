@@ -131,7 +131,7 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	if(first == 0){
 		lseek(fd, -1, SEEK_CUR);
 	}
-#ifdef DEBUG
+#ifdef DDDEBUG
 	printf("Time: %lld\n",val);
 #endif
 	return val;
@@ -341,7 +341,7 @@ int main(int argc, char **argv){
 		printf("ERR OPEN READ\n");
 		return 1;
 	}
-	if((fdw = open(argv[2], O_WRONLY)) < 0){
+	if((fdw = open(argv[2], O_WRONLY|O_CREAT|O_TRUNC)) < 0){
 		printf("ERR OPEN WRITE\n");
 		return 1;
 	}
@@ -383,8 +383,9 @@ int main(int argc, char **argv){
 		for(j=0; j<5; j++) quality_capteur +=
 			(((sommes[j] >> 16) & 0b11) << 2*j);
 		addCapteurInd(buf, quality_capteur);
-		for(j=0; j<5; j++)
-			addCapteurVal(buf, (sommes[j]) & 0xffff);
+		for(j=0; j<5; j++) 
+			//if((sommes[j] & 0b10) != 0b10) 
+				addCapteurVal(buf, (sommes[j]) & 0xffff);
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
 	close(fdr);

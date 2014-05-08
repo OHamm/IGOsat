@@ -11,7 +11,7 @@ int getNbrCapteur(int val){
 	int nbrCapteur, i;
 	nbrCapteur = 0;
 	for(i=0; i<8; i+=2){
-		if(val>>i & 0b00 || val>>i & 0b10){
+		if((val>>i) & 0b00 || (val>>i) & 0b01){
 			nbrCapteur++;
 		}
 	}
@@ -104,7 +104,7 @@ int getCapteurOnOff(int fd, int pos){
 	tmp = pos;
 	for(i=0;i<nbrBuf;i++){
 		for(j=tmp;j<8;j++){
-			if(nbrBitRead > 10){
+			if(nbrBitRead >= 10){
 				break;
 			}
 			if(buf[i]>>(7-j)&1){
@@ -115,7 +115,7 @@ int getCapteurOnOff(int fd, int pos){
 			}
 			nbrBitRead++;
 		}
-		if(nbrBitRead > 10){
+		if(nbrBitRead >= 10){
 			break;
 		}
 		tmp = 0;
