@@ -384,7 +384,7 @@ int main(int argc, char **argv){
 			(((sommes[j] >> 16) & 0b11) << 2*j);
 		addCapteurInd(buf, quality_capteur);
 		for(j=0; j<5; j++) 
-			//if((sommes[j] & 0b10) != 0b10) 
+			if((sommes[j] & 0b10) != 0b10) 
 				addCapteurVal(buf, (sommes[j]) & 0xffff);
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
