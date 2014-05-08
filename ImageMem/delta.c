@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <math.h>
 //ADD -DDEBUG for debug options
-#include "sommeTab.h"
 
 /** GETTING VALS FROM BINARY FILE **/
 long long int getVals(int fd, int first, int* tab){//0 true, 1 false
@@ -30,6 +29,14 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 	 * Le saut des 31 bytes joue sur le modulo 1
 	 * byte via la variable first!
 	 */
+	if(tab != NULL){
+		free(tab);
+	}
+	if((tab = (int*)calloc(16, sizeof(int))) == NULL){
+		printf("ERR CALLOC\n");
+		perror("");
+		return -1;
+	}
 	if((buf = (char*)calloc(40, sizeof(char))) == NULL){
 		printf("ERR CALLOC\n");
 		perror("");
@@ -118,7 +125,7 @@ long long int getVals(int fd, int first, int* tab){//0 true, 1 false
 		}
 	}
 
-#ifdef DEBUG
+#ifdef DDDEBUG
 	for(i=0;i<16;i++){
 		printf("Capteur[%d]: %d\n", i, tab[i]);
 		printf("Quality = %d\n", (tab[i] & 0xC000) >> 14);
@@ -296,11 +303,6 @@ void insertDeltInBuffer(buffer *buf, long long int val, int length){
 	printf("BIT POS %d\n",buf->bitPos);
 #endif
 }
-/** CALL THESE FUNCTIONS ONLY **/
-//Delta
-void addDelta(buffer *buf, long long int val){
-	insertDeltInBuffer(buf, val, getSize(val));
-}
 //16bits
 void addCapteurVal(buffer *buf, int val){
 	insertCaptInBuffer(buf, val, 16);
@@ -309,9 +311,83 @@ void addCapteurVal(buffer *buf, int val){
 void addCapteurInd(buffer *buf, int val){
 	insertCaptInBuffer(buf, val, 10);
 }
+/** CALL THESE FUNCTIONS ONLY **/
+//Delta
+void addDelta(buffer *buf, long long int val){
+	insertDeltInBuffer(buf, val, getSize(val));
+}
+void addLoop(int beg, int end, int *tab, int *captVals, int *indVals, int pos){
+	/* NOTE: tab[beg]<<18)>>18 bug sur mon pc, d'ou le 0b000.... */
+	int tmpIndVals = -1;
+	for(;beg<end;beg++){
+		if(tab[beg]>>14 == 0){
+			if(tmpIndVals == -1 || tmpIndVals == 3){
+				tmpIndVals = 0;
+			}
+			captVals[pos] += tab[beg]&0b00000000000000000011111111111111;
+			
+		}
+		if(tab[beg]>>14 == 1){
+			if(tmpIndVals == -1 || tmpIndVals == 3){
+				tmpIndVals = 1;
+			}
+			captVals[pos] += tab[beg]&0b00000000000000000011111111111111;
+		}
+		if(tab[beg]>>14 == 2){
+			tmpIndVals = 2;
+			captVals[pos] = 0;
+			break;
+		}
+		if(tab[beg]>>14 == 3){
+			if(tmpIndVals == -1){
+				tmpIndVals = 3;
+			}
+		}
+	}
+	indVals[pos] = tmpIndVals;
+	return;
+}
+//00 01
+void addCapteur(buffer *buf, int *tab){
+	int *captVals, *indVals;
+	int tmpInd, i;
+	if((captVals = (int*)calloc(5, sizeof(int))) == NULL){
+		printf("ERR CALLOC\n");
+		perror("");
+		return;
+	}
+	if((indVals = (int*)calloc(5, sizeof(int))) == NULL){
+		printf("ERR CALLOC\n");
+		perror("");
+		return;
+	}
+	/* Groupes de Capteurs */
+
+	addLoop(0, 4, tab, captVals, indVals, 0);
+	addLoop(4, 7, tab, captVals, indVals, 1);
+	addLoop(7, 10, tab, captVals, indVals, 2);
+	addLoop(10, 13, tab, captVals, indVals, 3);
+	
+	tmpInd = 0;
+	for(i=0;i<5;i++){
+		tmpInd += indVals[i];
+		tmpInd *= 4;
+	}
+	addCapteurInd(buf, tmpInd);
+	int testvar = 0;
+	for(i=0;i<5;i++){
+		if(captVals[i] != 0){
+			testvar++;
+			printf("VAL %d %d",indVals[i],captVals[i]);
+			addCapteurVal(buf,captVals[i]);
+		}
+	}
+	printf(" NBR %d\n",testvar);
+	free(captVals);
+	free(indVals);
+}
 /** END CALL THESE FUNCTIONS ONLY **/
 /** END WRITING STUFF **/
-
 void freeAll(buffer *buf){
 	if(buf->buffer != NULL){
 #ifdef DEBUG
@@ -321,22 +397,12 @@ void freeAll(buffer *buf){
 	}
 	free(buf);
 }
-
-void print_capteurs(int *sommes) {
-	int i;
-	for(i=0; i<5; i++) printf("Capteur %d : %d\n", i, sommes[i]);
-}
-
 //argv[1] = name of file READ, argv[2] = name of file WRITTEN
 int main(int argc, char **argv){
-	int fdr, fdw, i,j;
+	int fdr, fdw, i;
 	long long int old, next;
-	int *sommes = (int*) malloc(5 * sizeof(int));
-	int *tab = (int*) malloc(16 * sizeof(int));
-	int* capteurs;
+	int* capteurs = NULL;
 	buffer *buf;
-	memset(tab, 0, 16*sizeof(int));
-	memset(sommes, 0, 5*sizeof(int));
 	if((fdr = open(argv[1], O_RDONLY)) < 0){
 		printf("ERR OPEN READ\n");
 		return 1;
@@ -362,6 +428,7 @@ int main(int argc, char **argv){
 	//Initialisation du delta
 	old = getVals(fdr,0, capteurs);
 	addDelta(buf, old);
+	addCapteur(buf, capteurs);
 	//TODO ADD FIRST CAPTEUR HERE
 	//End init
 #ifdef DEBUG
@@ -377,19 +444,14 @@ int main(int argc, char **argv){
 #endif
 		addDelta(buf, deltacompression(old,next));
 		old = next;
-		if(capteurs == NULL) printf("Capteurs null\n");
-		somme_capteurs(capteurs, sommes);
-		int quality_capteur = 0;
-		for(j=0; j<5; j++) quality_capteur +=
-			(((sommes[j] >> 16) & 0b11) << 2*j);
-		addCapteurInd(buf, quality_capteur);
-		for(j=0; j<5; j++) 
-			if((sommes[j] & 0b10) != 0b10) 
-				addCapteurVal(buf, (sommes[j]) & 0xffff);
+		addCapteur(buf, capteurs);
 		//TODO ADD ACTIVE CAPTEURS + CAPTEUR VAL HERE
 	}
 	close(fdr);
 	close(fdw);
 	freeAll(buf);
+	if(capteurs != NULL){
+		free(capteurs);
+	}
 	return 0;
 }
