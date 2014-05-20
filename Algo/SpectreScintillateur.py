@@ -1,6 +1,6 @@
 def spectre():
     N = 256 #nb de plages du spectre
-    t_max = 6*10**12 #10 min
+    t_max = 2*3*6*10**12 #2*30 min
     t,temp,val_en,delta_t,t_ref,flag=[],[],0,0,0,False
     spectre_photon_hautgain = [0 for i in range(N)]
     spectre_photon_basgain = [0 for i in range(N)]
@@ -21,7 +21,7 @@ def spectre():
     energie_max_bloc234_electron = (2**15)*3 #les autres blocs ont 3 capteurs
     pas_sp_electron_bloc1 = energie_max_bloc1_electron//N
     pas_sp_electron_bloc234 = energie_max_bloc234_electron//N
-    f =open('data.txt','r')
+    f =open('splitLast','r')
     while delta_t<t_max:
             line=f.readline()
             t = line.split()
@@ -115,36 +115,68 @@ def spectre():
                             
             temp,val_en=[],0
     f.close()
+
+    while spectre_electron_bloc1_hautgain[-1]==0:
+        spectre_electron_bloc1_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_electron_bloc1_basgain[-1]==0:
+        spectre_electron_bloc1_basgain[-1:]=[]
+
+    while spectre_electron_bloc2_hautgain[-1]==0:
+        spectre_electron_bloc2_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_electron_bloc2_basgain[-1]==0:
+        spectre_electron_bloc2_basgain[-1:]=[]
+
+    while spectre_electron_bloc3_hautgain[-1]==0:
+        spectre_electron_bloc3_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_electron_bloc3_basgain[-1]==0:
+        spectre_electron_bloc3_basgain[-1:]=[]
+
+    while spectre_electron_bloc4_hautgain[-1]==0:
+        spectre_electron_bloc4_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_electron_bloc4_basgain[-1]==0:
+        spectre_electron_bloc4_basgain[-1:]=[]
+
+    while spectre_electron_bloc5_hautgain[-1]==0:
+        spectre_electron_bloc5_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_electron_bloc5_basgain[-1]==0:
+        spectre_electron_bloc5_basgain[-1:]=[]
+
+    while spectre_photon_hautgain[-1]==0:
+        spectre_photon_hautgain[-1:]=[] #on retire les 0 de fin de spectre
+    while spectre_photon_basgain[-1]==0:
+        spectre_photon_basgain[-1:]=[]
+
+    
     g =open('Spectre_photon_electron.txt','w')
-    g.write('Spectre electron bloc 1 haut gain:'+'\n')
+    g.write('Sp_el_b1_hg:'+'\n')
     for i in spectre_electron_bloc1_hautgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc 1 bas gain:'+'\n')
+    g.write('Sp_el_b1_bg:'+'\n')
     for i in spectre_electron_bloc1_basgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc 2 haut gain:'+'\n')
+    g.write('Sp_el_b2_hg:'+'\n')
     for i in spectre_electron_bloc2_hautgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc 2 bas gain:'+'\n')
+    g.write('Sp_el_b2_bg:'+'\n')
     for i in spectre_electron_bloc2_basgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc haut gain 3:'+'\n')
+    g.write('Sp_el_b3_hg:'+'\n')
     for i in spectre_electron_bloc3_hautgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc bas gain 3:'+'\n')
+    g.write('Sp_el_b3_bg:'+'\n')
     for i in spectre_electron_bloc3_basgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc haut gain 4:'+'\n')
+    g.write('Sp_el_b4_hg:'+'\n')
     for i in spectre_electron_bloc4_hautgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc bas gain 4:'+'\n')
+    g.write('Sp_el_b4_bg:'+'\n')
     for i in spectre_electron_bloc4_basgain:
         g.write(str(i)+' ')
     g.write('\n')
@@ -152,20 +184,20 @@ def spectre():
     for i in spectre_electron_bloc5_hautgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre electron bloc bas gain 5:'+'\n')
+    g.write('Sp_el_b5_bg:'+'\n')
     for i in spectre_electron_bloc5_basgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre photon bas gain:'+'\n')
+    g.write('Sp_ph_bg:'+'\n')
     for i in spectre_photon_basgain:
         g.write(str(i)+' ')
     g.write('\n')
-    g.write('Spectre photon haut gain:'+'\n')
+    g.write('Sp_ph_hg:'+'\n')
     for i in spectre_photon_hautgain:
         g.write(str(i)+' ')
     g.close()
     return
 
-
+spectre()
 # hypothese : dans un meme bloc on ne peut pas avoir deux gains differents (A VERIFIER)
 #
