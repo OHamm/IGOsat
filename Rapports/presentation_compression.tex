@@ -1,0 +1,271 @@
+\documentclass[10pt,xcolor=pst]{beamer}
+%\usepackage[utf8]{inputenc}
+\usepackage[latin1]{inputenc}
+\usepackage[TS1,T1]{fontenc}
+\usepackage[english,french]{babel}
+\usepackage{lmodern}
+\usepackage{pst-all}
+
+\def \dis{\displaystyle}
+
+\usetheme{Warsaw}
+
+
+
+\title[Compression de données]{Etude de compression de données pour IGOSAT}
+\author[Fabre \and Hamm \and Keuffer]{Olden Fabre \and Oliver Hamm \and Julien Keuffer}
+\institute[P7]{Université Paris 7 M1 Informatique (et mathématiques)}
+\date{19 mai 2014}
+
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\section{Problématique}
+\begin{frame}
+\frametitle{Problématique}
+Basée sur les spécifications de mission et spécifications techniques de besoin.
+\begin{itemize}[<+->]
+\item IGOSAT est un nanosatellite embarquant deux instruments de mesure (un GPS et un scintillateur)
+\item Scintillateur: 30 min d'acquisistion de données au maximum par orbite
+\item Communication du satellite avec le sol: environ 10 min par orbite  (6 fois par jour)
+\item Débit pour le transfert des données compris entre 1200 et 9600 bit/s \\
+\item[]  $\Longrightarrow$ \textbf{Nécessité de diminuer le volume des données à envoyer}
+\end{itemize}
+\end{frame}
+
+
+
+\section{Scintillateur}
+\begin{frame}
+\frametitle{Scintillateur}
+Scintillateur: dispositif qui mesure l'énergie de photons et d'électrons \\
+\'Evènement : interaction entre une particule et le scintillateur
+\begin{itemize}[<+->]
+\item
+Un microcontroleur transmet à l'ordinateur de bord les données:\\
+- date de l'évènement \\
+- valeur de l'énergie de l'évènement
+\item
+Grande quantité d'évènements (estimation: 200 evts/s)
+\item
+Travail sur un fichier de simulation réalisé par H.Halloin\\
+(Simulation d'un million d'évènements)
+\item
+Deux voies possibles pour réduire la taille des données:
+\begin{itemize}[<+->]
+		\item[-] $1^{\text{ère}}$ possibilité: compresser (sans pertes) les données correspondant à chaque évènement
+		\item[-] $2^{\text{ème}}$ possibilité: réaliser un spectre à partir des données 
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Modélisation du scintillateur}
+\begin{columns}[c]
+\begin{column}[]{0.5\linewidth}
+\begin{center}
+Matrice des capteurs du scintillateur:\\
+\psset{unit=1.0cm,dotsize=3pt 0,linewidth=0.8pt}
+\begin{pspicture*}(0,0)(4.5,4.5)
+
+\pspolygon(0,0)(4,0)(4,4)(0,4)
+
+\psline(1,0)(1,4)
+\psline(2,0)(2,4)
+\psline(3,0)(3,4)
+\psline(0,1)(4,1)
+\psline(0,2)(4,2)
+\psline(0,3)(4,3)
+
+\rput(1.5,2.5){1}
+\rput(1.5,1.5){2}
+\rput(2.5,1.5){3}
+\rput(2.5,2.5){4}
+\rput(2.5,3.5){5}
+\rput(1.5,3.5){6}
+\rput(0.5,3.5){7}
+\rput(0.5,2.5){8}
+\rput(0.5,1.5){9}
+\rput(0.5,0.5){10}
+\rput(1.5,0.5){11}
+\rput(2.5,0.5){12}
+\rput(3.5,0.5){13}
+\rput(3.5,1.5){14}
+\rput(3.5,2.5){15}
+\rput(3.5,3.5){16}
+
+\end{pspicture*}
+\end{center}
+\end{column}
+\begin{column}{0.5\linewidth}
+Evènement:
+\begin{itemize}[<+->]
+\item
+dépot d'énergie sur un ou plusieurs capteurs
+\item
+relevé du temps (temps absolu codé sur 60 bits)
+\item
+relevé du statut de chaque capteur (codé sur 2 bits):
+\item[]  \;0: bas gain \quad 1: haut gain
+\item[] -1: rien   \qquad  2: saturation
+\item
+valeur d'un capteur codée sur 14 bits 
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Modélisation du scintillateur}
+Exemple d'évènement écrit dans le fichier de sortie:\\[10pt]
+$\underbrace{23031202f3550cf}_{\text{temps}}$ -1 0 -1 0 -1 0 -1 0 -1 0 -1 0 -1 0\\[5pt]
+-1 0 -1 0 -1 0 1 2dab 1 27a5 1 24af -1 0 -1 0 -1 0 
+\begin{pspicture*}(0,0)(10,0.7)
+\psline{->}(2.7,0.2)(2.7,0.7)
+\psline[linewidth=.9pt](2.7,0.2)(5,0.2)(5,0)
+\psline{->}(2.2,0)(2.2,0.7)
+\end{pspicture*}
+Statut capteur n°11 \qquad Valeur capteur n°11 \\
+\vspace{1cm}
+$\Longrightarrow$ les capteurs 11, 12 et 13 ont été activés 
+\end{frame}
+
+\section{Algorithme de compression}
+\begin{frame}
+\frametitle{Algorithme de compression}
+\begin{columns}[c]
+\begin{column}[]{0.5\linewidth}
+\begin{center}
+On assemble les capteurs par blocs:\\
+\psset{unit=1.0cm,dotsize=3pt 0,linewidth=0.8pt}
+\begin{pspicture*}(0,0)(4.5,4.5)
+\pspolygon(0,0)(4,0)(4,4)(0,4)
+
+
+\psframe(1,1)(3,3)
+\psframe(0,3)(3,4)
+\psframe(0,3)(1,0)
+\psframe(1,0)(4,1)
+\psframe(3,4)(4,1)
+
+\rput(2,2){Bloc 1}
+\rput(1.5,3.5){Bloc 2}
+\rput{90}(0.5,1.5){Bloc 3}
+\rput(2.5,0.5){Bloc 4}
+\rput{-90}(3.5,2.5){Bloc 5}
+
+
+\end{pspicture*}
+\end{center}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{itemize}[<+->]
+\item
+un masque de 10 bits pour les blocs activés et leur statut
+\item
+Pour un bloc:\\
+ajout des valeurs des capteurs\\
+(valeur sur 16 bits)
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Algorithme de compression}
+\begin{itemize}[<+->]
+\item
+Utilisation d'une structure plus efficace de représentation des données 
+\item
+Evènements très proches en temps: utilisation d'un algorithme du Delta pour le mot de temps.\\[10pt]
+\item[] Pour chaque évènement:\\[8pt]
+\begin{tabular}{cccc}
+longueur delta & le delta & masque capteur & valeur(s) bloc(s) \\
+6 bits & $1 \text{bit} \leq \Delta \leq 60 \text{bits}$ & 10 bits & 15 bits par bloc
+\end{tabular}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Spectre}
+\begin{itemize}[<+->]
+\item
+Evènements rassemblés par valeur d'énergie et par type de gain
+\item
+Chaque spectre est subdivisé en 256 parties 
+\item
+Pour les photons: deux spectres (haut gain - bas gain)
+\item
+Pour les électrons: deux spectres pour chaque bloc (haut gain - bas gain)
+\end{itemize}
+\end{frame}
+
+\section{Description des programmes}
+
+\begin{frame}
+\frametitle{Description des programmes 1}
+
+txtToStruct $\longrightarrow$ conversion du fichier texte en fichier binaire \\
+\pause encode $\longrightarrow$  algorithme de compression appliqué au fichier binaire \\
+\pause decode $\longrightarrow$  algorithme de décompression, obtention d'un binaire \\
+\pause structToBin $\longrightarrow$ conversion du binaire en fichier texte \\
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Efficacité}
+Comparaison avec divers logiciels de compression:\\ % a vous de compléter ceci avec quelques expériences...
+fichier de départ en format binaire: ? Mo 
+\begin{itemize}[<+->]
+\item
+Compression avec notre algorithme: ? Mo
+\item
+Compression avec gzip : ?  Mo
+\item
+Compression avec bz: ? Mo
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Description des programmes 2}
+
+SimuScintillateur.c $\longrightarrow$ EventsScintillator.txt : \\
+fichier de simulation de $10^6$ evts \\
+\pause Splitdata.py $\longrightarrow$ SplitLast: \\
+ fichier de données où on ne garde que ce qui correspond aux données envoyées par le microcontroleur \\
+\pause SpectreScintillateur $\longrightarrow$ réalisation de spectre à partir du fichier SplitLast:\\
+Obtention d'un fichier texte de taille 8ko sur 60 min d'acquisition d'evts
+
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Conclusion}
+\begin{enumerate}[<+->]
+\item
+Un travail de documentation et de compréhension du sujet
+\item
+Un travail avec des gens qui ne sont pas informaticiens
+\item
+Ce qui reste à faire
+\end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}
+\tableofcontents
+\end{frame}
+
+
+\end{document}
